@@ -53,10 +53,8 @@ with open(OUTPUT_FILENAME,'w') as fp:
         logging.warning("exception: %s" % (e))
 
 if DEDUPE_OUTPUT:
-  uniq_lines = set(open(OUTPUT_FILENAME).readlines())
-  fp = open(OUTPUT_FILENAME, 'w')
-  fp.writelines(set(uniq_lines))
-  fp.close()
+  with open(OUTPUT_FILENAME, 'w') as fp:
+    fp.writelines(set(open(OUTPUT_FILENAME).readlines()))
 
 with open(OUTPUT_FILENAME, 'r+') as fp:
   c = fp.read()
