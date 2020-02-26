@@ -6,8 +6,34 @@ import os
 import sys
 import concurrent.futures
 
+GENERATE_VANILLA_INCLUDE = False
 OUTPUT_FILENAME = "heatmap-datapoints.js"
 DEDUPE_OUTPUT = True
+JS_TEMPLATE = """
+<div id="map" style="height: 500px;"></div>
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=GOOGLE_MAPS_API_KEY&amp;libraries=visualization"></script>
+
+<script>
+var heatmapData = [
+  %s
+];
+var heatmapCenter = new google.maps.LatLng(46.798476, 8.231787);
+
+map = new google.maps.Map(document.getElementById('map'), {
+  center: heatmapCenter,
+  zoom: 1,
+  mapTypeId: 'roadmap'
+});
+
+var heatmap = new google.maps.visualization.HeatmapLayer({
+  data: heatmapData
+});
+heatmap.setMap(map);
+heatmap.set('radius', 20);
+heatmap.set('maxIntensity', 6000);
+heatmap.set('opacity', 0.6);
+</script>
+"""
 
 def emit_js(fn): 
   logging.info("scheduled conversion: %s" % fn)
@@ -57,7 +83,13 @@ if DEDUPE_OUTPUT:
   with open(OUTPUT_FILENAME, 'w') as fp:
     fp.writelines(ul)
 
-with open(OUTPUT_FILENAME, 'r+') as fp:
-  c = fp.read()
-  fp.seek(0, 0)
-  fp.write("var datapoints = [\n" + c + "];")
+if GENERATE_VANILLA_INCLUDE:
+  with open(OUTPUT_FILENAME, 'r+') as fp:
+    c = fp.read()
+    fp.seek(0, 0)
+    fp.write("var datapoints = [\n" + c + "];")
+else:
+  with open(OUTPUT_FILENAME, 'r+') as fp:
+    c = fp.read()
+    fp.seek(0,0)
+    fp.write(JS_TEMPLATE % c)
